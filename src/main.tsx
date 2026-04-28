@@ -4,8 +4,8 @@ import { TonConnectUIProvider } from '@tonconnect/ui-react'
 import './index.css'
 import App from './App.tsx'
 
-// Temporary manifest URL for development
-const manifestUrl = 'https://raw.githubusercontent.com/ton-community/tutorials/main/03-client/test/public/tonconnect-manifest.json';
+// Manifest URL must be a public URL pointing to your tonconnect-manifest.json
+const manifestUrl = 'https://badger-clicker-tma-production.up.railway.app/tonconnect-manifest.json';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

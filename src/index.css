@@ -1,14 +1,15 @@
 :root {
-  --bg-primary: #0a1409;
-  --bg-secondary: #1a2f18;
-  --accent-gold: #d4af37;
-  --accent-gold-glow: rgba(212, 175, 55, 0.4);
-  --forest-green: #2d5a27;
+  --bg-primary: #050a05;
+  --bg-secondary: #0d1a0c;
+  --accent-gold: #e2c044;
+  --accent-gold-glow: rgba(226, 192, 68, 0.4);
+  --forest-green: #234d20;
   --text-primary: #ffffff;
-  --text-secondary: #b0b0b0;
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --nav-height: 80px;
 }
 
 * {
@@ -183,41 +184,48 @@ body {
 
 .energy-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-gold), #FFF);
-  box-shadow: 0 0 10px var(--accent-gold-glow);
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, var(--accent-gold), #fff);
+  box-shadow: 0 0 15px var(--accent-gold-glow);
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Navigation */
 .nav-bar {
-  background: var(--bg-secondary);
+  background: rgba(13, 26, 12, 0.8);
   border: 1px solid var(--glass-border);
-  border-radius: 24px;
-  padding: 12px;
+  border-radius: 30px;
+  padding: 14px;
   display: flex;
   justify-content: space-around;
   margin-bottom: 24px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 .nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   color: var(--text-secondary);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 500;
   text-decoration: none;
   transition: var(--transition-smooth);
 }
 
 .nav-item.active {
   color: var(--accent-gold);
+  transform: translateY(-2px);
 }
 
 .nav-icon {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
+  transition: var(--transition-smooth);
+}
+
+.nav-item.active .nav-icon {
+  filter: drop-shadow(0 0 8px var(--accent-gold-glow));
 }
 
 /* Animations */
