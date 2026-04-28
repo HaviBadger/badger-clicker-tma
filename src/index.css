@@ -108,6 +108,16 @@ body {
   color: var(--text-secondary);
 }
 
+.level-badge {
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 900;
+  font-size: 0.7rem;
+  box-shadow: 0 0 10px var(--accent-gold-glow);
+}
+
 /* Main Clicker */
 .clicker-section {
   flex: 1;

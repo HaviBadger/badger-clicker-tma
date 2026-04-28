@@ -13,6 +13,9 @@ import {
   AlertCircle
 } from 'lucide-react';
 import mascotImg from './assets/badger-mascot.png';
+import warriorImg from './assets/badger-warrior.png';
+import generalImg from './assets/badger-general.png';
+import emperorImg from './assets/badger-emperor.png';
 import { supabase } from './supabase';
 import './App.css';
 
@@ -226,12 +229,15 @@ function App() {
     setTimeout(() => setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id))), 600);
   };
 
-  const getRankName = () => {
-    if (balance < 5000) return 'Badger Cub';
-    if (balance < 25000) return 'Sett Forager';
-    if (balance < 100000) return 'Honey Warrior';
-    return 'Sett Boss';
+  const getLevelInfo = () => {
+    if (balance < 10000) return { name: 'Badger Cub', img: mascotImg, next: 10000, current: 0 };
+    if (balance < 50000) return { name: 'Sett Forager', img: warriorImg, next: 50000, current: 10000 };
+    if (balance < 250000) return { name: 'Honey Warrior', img: generalImg, next: 250000, current: 50000 };
+    return { name: 'Sett Boss', img: emperorImg, next: 1000000, current: 250000 };
   };
+
+  const levelInfo = getLevelInfo();
+  const xpProgress = ((balance - levelInfo.current) / (levelInfo.next - levelInfo.current)) * 100;
 
   const calculateCost = (base: number, level: number) => Math.floor(base * Math.pow(1.6, level - 1));
 
@@ -323,10 +329,11 @@ function App() {
             <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{tgUser?.first_name || 'Badger Boss'}</div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <ShieldCheck size={12} color="var(--accent-gold)" />
-              {getRankName()}
+              {levelInfo.name}
             </div>
           </div>
         </div>
+        <div className="level-badge">LVL {Math.floor(balance / 50000) + 1}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {isSaving && <CloudUpload size={18} className="saving-icon" color="var(--accent-gold)" />}
           {error && <AlertCircle size={18} color="#FF5252" />}
@@ -342,6 +349,15 @@ function App() {
         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', gap: '15px' }}>
           <span>+{multiTapLevel} / click</span>
           {badgerBotLevel > 0 && <span style={{ color: 'var(--accent-gold)' }}>+{badgerBotLevel * 2} / sec</span>}
+        </div>
+        <div style={{ width: '100%', marginTop: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+            <span>Progress to Next Rank</span>
+            <span>{Math.min(100, xpProgress).toFixed(0)}%</span>
+          </div>
+          <div className="energy-bar-bg" style={{ height: '6px' }}>
+            <div className="energy-bar-fill" style={{ width: `${Math.min(100, xpProgress)}%`, background: 'var(--accent-gold)' }}></div>
+          </div>
         </div>
       </section>
 
@@ -359,7 +375,7 @@ function App() {
                   {combo}x COMBO
                 </div>
               )}
-              <img src={mascotImg} alt="Badger Mascot" className="mascot-img" />
+              <img src={levelInfo.img} alt="Badger Mascot" className="mascot-img" />
             </div>
 
             {clicks.map(click => (
