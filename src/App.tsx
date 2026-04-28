@@ -22,6 +22,14 @@ interface ClickAnimation {
   y: number;
 }
 
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  tx: number;
+  ty: number;
+}
+
 function App() {
   // User Identification
   const tgUser = WebApp.initDataUnsafe?.user;
@@ -33,6 +41,7 @@ function App() {
   const [maxEnergy, setMaxEnergy] = useState(1000);
   const [activeTab, setActiveTab] = useState('earn');
   const [clicks, setClicks] = useState<ClickAnimation[]>([]);
+  const [particles, setParticles] = useState<Particle[]>([]);
   
   // Upgrades State
   const [multiTapLevel, setMultiTapLevel] = useState(1);
@@ -165,18 +174,33 @@ function App() {
   }, [maxEnergy, rechargeSpeedLevel, badgerBotLevel]);
 
   const handleMascotClick = (e: React.MouseEvent | React.TouchEvent) => {
-    if (energy < multiTapLevel) return;
+    if (energy < multiTapLevel) {
+      WebApp.HapticFeedback.notificationOccurred('error');
+      return;
+    }
 
-    WebApp.HapticFeedback.impactOccurred('light');
+    WebApp.HapticFeedback.impactOccurred('medium');
     setBalance(prev => prev + multiTapLevel);
     setEnergy(prev => Math.max(0, prev - multiTapLevel));
 
     const clientX = 'touches' in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
     const clientY = 'touches' in e ? (e as React.TouchEvent).touches[0].clientY : (e as React.MouseEvent).clientY;
 
+    // Add floating number
     const newClick = { id: nextId.current++, x: clientX, y: clientY };
     setClicks(prev => [...prev, newClick]);
     setTimeout(() => setClicks(prev => prev.filter(c => c.id !== newClick.id)), 800);
+
+    // Add particles
+    const newParticles: Particle[] = Array.from({ length: 6 }).map((_, i) => ({
+      id: nextId.current++,
+      x: clientX,
+      y: clientY,
+      tx: (Math.random() - 0.5) * 200,
+      ty: (Math.random() - 0.5) * 200
+    }));
+    setParticles(prev => [...prev, ...newParticles]);
+    setTimeout(() => setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id))), 600);
   };
 
   const getRankName = () => {
@@ -304,6 +328,19 @@ function App() {
               <div key={click.id} className="floating-number" style={{ left: click.x - 20, top: click.y - 40 }}>
                 +{multiTapLevel}
               </div>
+            ))}
+
+            {particles.map(p => (
+              <div 
+                key={p.id} 
+                className="particle" 
+                style={{ 
+                  left: p.x, 
+                  top: p.y, 
+                  '--tx': `${p.tx}px`, 
+                  '--ty': `${p.ty}px` 
+                } as any}
+              />
             ))}
 
             <div className="tasks-preview" style={{ marginTop: '30px', width: '100%' }}>
