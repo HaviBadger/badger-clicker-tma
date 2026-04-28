@@ -48,8 +48,9 @@ function App() {
   const [energyLimitLevel, setEnergyLimitLevel] = useState(1);
   const [rechargeSpeedLevel, setRechargeSpeedLevel] = useState(1);
   const [badgerBotLevel, setBadgerBotLevel] = useState(0);
-  
-  // System State
+  const [combo, setCombo] = useState(0);
+  const [lastClickTime, setLastClickTime] = useState(0);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -179,12 +180,33 @@ function App() {
       return;
     }
 
-    WebApp.HapticFeedback.impactOccurred('medium');
-    setBalance(prev => prev + multiTapLevel);
-    setEnergy(prev => Math.max(0, prev - multiTapLevel));
+    const now = Date.now();
+    const isCombo = now - lastClickTime < 300;
+    const newCombo = isCombo ? Math.min(combo + 1, 50) : 0;
+    
+    setCombo(newCombo);
+    setLastClickTime(now);
 
+    // Dynamic Haptics based on combo
+    if (newCombo % 10 === 0 && newCombo > 0) {
+      WebApp.HapticFeedback.notificationOccurred('success');
+    } else {
+      WebApp.HapticFeedback.impactOccurred(newCombo > 20 ? 'heavy' : 'medium');
+    }
+
+    // Tilt effect calculation
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const clientX = 'touches' in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
     const clientY = 'touches' in e ? (e as React.TouchEvent).touches[0].clientY : (e as React.MouseEvent).clientY;
+    
+    const x = ((clientX - rect.left) / rect.width - 0.5) * 30;
+    const y = ((clientY - rect.top) / rect.height - 0.5) * -30;
+    setTilt({ x, y });
+    setTimeout(() => setTilt({ x: 0, y: 0 }), 100);
+
+    const reward = multiTapLevel * (1 + Math.floor(newCombo / 10) * 0.5);
+    setBalance(prev => prev + reward);
+    setEnergy(prev => Math.max(0, prev - multiTapLevel));
 
     // Add floating number
     const newClick = { id: nextId.current++, x: clientX, y: clientY };
@@ -192,12 +214,13 @@ function App() {
     setTimeout(() => setClicks(prev => prev.filter(c => c.id !== newClick.id)), 800);
 
     // Add particles
-    const newParticles: Particle[] = Array.from({ length: 6 }).map((_, i) => ({
+    const particleCount = 6 + Math.floor(newCombo / 5);
+    const newParticles: Particle[] = Array.from({ length: particleCount }).map((_, i) => ({
       id: nextId.current++,
       x: clientX,
       y: clientY,
-      tx: (Math.random() - 0.5) * 200,
-      ty: (Math.random() - 0.5) * 200
+      tx: (Math.random() - 0.5) * (200 + newCombo * 2),
+      ty: (Math.random() - 0.5) * (200 + newCombo * 2)
     }));
     setParticles(prev => [...prev, ...newParticles]);
     setTimeout(() => setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id))), 600);
@@ -285,8 +308,14 @@ function App() {
     );
   }
 
+  const getBgColor = () => {
+    if (combo > 30) return 'radial-gradient(circle at center, #2d1b09 0%, #050a05 100%)';
+    if (combo > 15) return 'radial-gradient(circle at center, #1a2f18 0%, #050a05 100%)';
+    return 'radial-gradient(circle at top right, var(--bg-secondary) 0%, var(--bg-primary) 100%)';
+  };
+
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ background: getBgColor() }}>
       <header className="header">
         <div className="user-profile">
           <div className="avatar">{tgUser?.first_name?.charAt(0) || 'B'}</div>
@@ -319,8 +348,17 @@ function App() {
       <div className="tab-content">
         {activeTab === 'earn' && (
           <main className="clicker-section">
-            <div className="mascot-container" onClick={handleMascotClick}>
+            <div 
+              className={`mascot-container ${combo > 20 ? 'super-charge' : ''}`} 
+              onClick={handleMascotClick}
+              style={{ transform: `perspective(1000px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg) scale(${tilt.x !== 0 ? 0.95 : 1})` }}
+            >
               <div className="glow-effect"></div>
+              {combo > 10 && (
+                <div className="combo-badge">
+                  {combo}x COMBO
+                </div>
+              )}
               <img src={mascotImg} alt="Badger Mascot" className="mascot-img" />
             </div>
 
